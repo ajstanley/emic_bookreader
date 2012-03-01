@@ -1,0 +1,114 @@
+<?php
+
+// $Id$
+
+/*
+ * Created on Aug 10, 2007
+ */
+
+/**
+ * Drupal hook for admin form
+ * fedora_repository_name is the name of the top level collection this module will query
+ * fedora_repository_pid is the name of the top level pid.
+ * Stores this info in the drupal variables table.
+ * the name and pid can also be passed as url parameters
+ */
+function islandora_bookviewer_admin() {
+  return "";
+}
+
+function islandora_bookviewer_admin_settings_submit($form, $form_values) {
+
+}
+
+/**
+ * drupal hook to show help
+ */
+function islandora_bookviewer_help($path, $arg) {
+  switch ($path) {
+    case 'admin/modules#description' :
+      return t('Grabs a list of items from a collection in Drupal that are presented on the home page.');
+    case 'node/add#fedora_repository' :
+      return t('Use this page to grab a list of items from a Fedora collection.');
+  }
+}
+
+function islandora_bookviewer_menu() {
+  $items['getbookpage/%'] = array(
+    'page callback' => 'islandora_bookviewer_get_book_page',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    //'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['mods2html/%'] = array(
+    'page callback' => 'islandora_bookviewer_get_mods',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    //'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['bookreader/setup'] = array(
+    'page callback' => 'islandora_bookviewer_setup',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('use CWRC'),
+  );
+  return $items;
+}
+
+/*
+  function islandora_bookviewer_get_book_page($page) {
+  global $base_url;
+
+  // the preferred page
+  $page_path = $base_url .":8080/adore-djatoka/resolver?url_ver=Z39.88-2004&rft_id=". $base_url ."/drupal/fedora/repository/". $page ."/JP2/&svc_id=info:lanl-repo/svc/getRegion&svc_val_fmt=info:ofi/fmt:kev:mtx:jpeg2000&svc.format=image/png&svc.level=4&svc.rotate=0";
+  // the fallback if the preferred one fails
+  $page_path = $base_url ."/drupal/fedora/repository/". $page ."/JP2";
+
+  return $page_path;
+  } */
+
+function islandora_bookviewer_get_mods($page) {
+  global $base_url;
+  $url = $base_url . ":8080/saxon/SaxonServlet?source=" . $base_url . "/fedora/repository/" . $page . "/MODS&style=" . $base_url . "/" . drupal_get_path('module', 'islandora_bookviewer') . "/mods2html.xsl";
+  $http = drupal_http_request($url);
+  //return $http->data;
+  print $http->data;
+  return;
+}
+
+
+/**
+ * Provides page information for Bookviewer
+ * To be invoked with ajax
+ * @global url $base_url
+ * @param string $pid
+ */
+
+function islandora_bookviewer_setup($pid) {
+  module_load_include('inc', 'islandora_book', 'book_pack_utils');
+  module_load_include('inc', 'fedora_repository', 'api/fedora_item');
+  global $base_url;
+  $item = new Fedora_Item($pid);
+  $label = $item->objectProfile->objLabel;
+  $djatoka_prefix = "http://localhost:8080/adore-djatoka/resolver?url_ver=Z39.88-2004&rft_id=";
+  $islandora_prefix = $base_url . '/fedora/repository/';
+  $fedora_prefix = variable_get('fedora_base_url', 'http:8080/fedora');
+  $book_pids = get_sorted_pages($pid);
+  $filename = $djatoka_prefix . $islandora_prefix . $book_pids[count($book_pids)] . "/JP2/&svc_id=info:lanl-repo/svc/getMetadata";
+  $pageData = json_decode(file_get_contents($filename));
+
+  $configs = array();
+  $configs['DJATOKA_PREFIX'] = $djatoka_prefix;
+  $configs['ISLANDORA_PREFIX'] = $islandora_prefix;
+  $configs['FEDORA_PREFIX'] = $fedora_prefix;
+  $configs['COMPRESSION'] = 4;
+  $configs['book_pids'] = $book_pids;
+  $configs['page_width'] = $pageData->width;
+  $configs['page_height'] = $pageData->height;
+  $configs['page_count'] = count($book_pids);
+  $configs['label'] = $label;
+
+  $json = json_encode($configs);
+  echo $json;
+}
