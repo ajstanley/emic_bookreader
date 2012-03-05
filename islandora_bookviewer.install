@@ -1,4 +1,5 @@
 <?php
+
 // $Id$
 
 /**
@@ -9,8 +10,8 @@
  * Implementation of hook_enable().
  */
 function islandora_bookviewer_enable() {
-  //nothing to do as we do not currently touch the drupal database.
-  //other than the variables table
+  drupal_set_message("installing");
+  create_js_callback();
 }
 
 /**
@@ -36,4 +37,42 @@ function islandora_bookviewer_enable() {
  */
 function islandora_bookviewer_requirements($phase) {
 
+}
+
+function create_js_callback() {
+  global $base_url;
+  $URL = $base_url . '/bookreader/setup/';
+  $javascript = <<<FILE
+
+// this file is generated dynamically and non-destructively during the Drupal installation process.
+    $.urlParam = function(name){
+  var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+  if (!results)
+  {
+    return 0;
+  }
+  return results[1] || 0;
+}
+
+  PID = $.urlParam('pid');
+
+  $.ajax({
+    url:'$URL' + PID,
+    async:false,
+    success: function(data, status, xhr) {
+      islandora_params = data;
+    },
+    error: function() {
+      alert("AJAX call failed");
+    },
+    dataType: 'json'
+  });
+
+
+FILE;
+  $path = drupal_get_path('module', 'islandora_bookviewer');
+  $filename = "$path/js/islandora_loader.js";
+  if (!is_file($filename)) {
+    file_put_contents($filename, $javascript);
+  }
 }

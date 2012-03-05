@@ -1,6 +1,6 @@
 
 /**
- * Basic loader for reader.
+ * On ingest Drupal will create a copy of this file, with the URL localized to the Drupal installation
  */
 
 $.urlParam = function(name){

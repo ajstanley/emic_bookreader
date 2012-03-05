@@ -29,7 +29,7 @@ class IslandoraBookviewer {
 
   // an ajax callback has been added in the module
  
-  function showAjaxBookViewer() {
+  function showAjaxBookViewer($page) {
     global $base_url;
     $path = drupal_get_path('module', 'islandora_bookviewer');
     $fullPath = $path . '/';
@@ -37,7 +37,7 @@ class IslandoraBookviewer {
     //can be embeded but it looks terrible when embedded.  the css would have to be rewritten as most things are set as absolute
     //this will take some time but eventually would be worthwhile as the index php does not have access to drupal functions/variables when loaded as
     //an iframe
-    $viewer_url = $base_url . '/' . $fullPath . 'BookReaderDemo/islandora_bookreader.php?pid=' . $this->pid . '&label=' . $this->item->objectProfile->objLabel;
+    $viewer_url = $base_url . '/' . $fullPath . "$page?pid=" . $this->pid . '&label=' . $this->item->objectProfile->objLabel;
     $html = '<iframe src="' . $viewer_url . '" scrolling="0" frameborder="0" style="width: 100%; height: 800px;">Errors: unable to load viewer</iframe>';
     return $html;
   }
