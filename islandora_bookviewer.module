@@ -64,7 +64,7 @@ function islandora_bookviewer_menu() {
 }
 
 
-function islandora_bookreader_perms(){
+function islandora_bookreader_perm(){
   return array('use bookreader');
 }
 /*
