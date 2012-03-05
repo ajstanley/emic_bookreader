@@ -12,7 +12,6 @@ $.urlParam = function(name){
   return results[1] || 0;
 }
 
-//$('document').ready(function(){
   PID = $.urlParam('pid');
 
   $.ajax({
@@ -26,7 +25,6 @@ $.urlParam = function(name){
     },
     dataType: 'json'
   });
-//});
 
 
 

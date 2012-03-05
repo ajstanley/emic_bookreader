@@ -95,9 +95,8 @@ function islandora_bookviewer_setup($pid) {
   $islandora_prefix = $base_url . '/fedora/repository/';
   $fedora_prefix = variable_get('fedora_base_url', 'http:8080/fedora');
   $book_pids = get_sorted_pages($pid);
-  $filename = $djatoka_prefix . $islandora_prefix . $book_pids[count($book_pids)] . "/JP2/&svc_id=info:lanl-repo/svc/getMetadata";
+  $filename = $djatoka_prefix . "$fedora_prefix/objects/" . $book_pids[count($book_pids)] ."/datastreams/JP2/content&svc_id=info:lanl-repo/svc/getMetadata";
   $pageData = json_decode(file_get_contents($filename));
-
   $configs = array();
   $configs['DJATOKA_PREFIX'] = $djatoka_prefix;
   $configs['ISLANDORA_PREFIX'] = $islandora_prefix;
