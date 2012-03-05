@@ -88,6 +88,34 @@ function islandora_bookviewer_get_mods($page) {
   return;
 }
 
+
+
+function islandora_bookviewer_form_islandora_book_admin_settings_alter(&$form, &$form_state) {
+
+  $djatoka_path = isset($form_state['values']['islandora_djatoka_path']) ? $form_state['values']['islandora_djatoka_path'] : variable_get('islandora_djatoka_path', 'http://localhost:8080/adore-djatoka');
+  $djatoka_avail = djatoka_available($djatoka_path);
+  $confirmation_message = ($djatoka_avail ? '<img src="' . url('misc/watchdog-ok.png') . '"/>'
+          . t('Djatoka url is valid.') : '<img src="'
+          . url('misc/watchdog-error.png') . '"/> '
+          . t('Unable to locate djatoka installtion at !tile_path</p>', array('!tile_path' => $djatoka_path)));
+
+  $form['book_ahah_wrapper']['islandora_djatoka_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path to Djatoka'),
+    '#description' => t('Path to Djatoka installation'),
+    '#default_value' => $djatoka_path,
+    '#ahah' => array(
+      'path' => 'islandora/book/ocr',
+      'wrapper' => 'ibook-url',
+      'effect' => 'fade',
+      'event' => 'change'),
+  );
+
+  $form['book_ahah_wrapper']['infobox3'] = array(
+    '#type' => 'item',
+    '#value' => $confirmation_message,
+  );
+}
 /**
  * Provides page information for Bookviewer
  * To be invoked with ajax
@@ -100,7 +128,8 @@ function islandora_bookviewer_setup($pid) {
   global $base_url;
   $item = new Fedora_Item($pid);
   $label = $item->objectProfile->objLabel;
-  $djatoka_prefix = "http://localhost:8080/adore-djatoka/resolver?url_ver=Z39.88-2004&rft_id=";
+  //$djatoka_prefix = "http://localhost:8080/adore-djatoka/resolver?url_ver=Z39.88-2004&rft_id=";
+  $djatoka_prefix = variable_get('islandora_djatoka_path', 'http://localhost:8080/adore-djatoka') . '/resolver?url_ver=Z39.88-2004&rft_id=';
   $islandora_prefix = $base_url . '/fedora/repository/';
   $fedora_prefix = variable_get('fedora_base_url', 'http:8080/fedora');
   $book_pids = get_sorted_pages($pid);
@@ -119,4 +148,21 @@ function islandora_bookviewer_setup($pid) {
 
   $json = json_encode($configs);
   echo $json;
+}
+
+
+function djatoka_available($djatoka_url) {
+
+  $handle = curl_init($djatoka_url);
+  curl_setopt($handle, CURLOPT_RETURNTRANSFER, TRUE);
+  $response = curl_exec($handle);
+  $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+ 
+  $retval = TRUE;
+  if ($httpCode % 100 == 4) {
+    $retval = FALSE;
+  }
+  curl_close($handle);
+ 
+  return $retval;
 }
