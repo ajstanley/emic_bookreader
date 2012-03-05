@@ -29,7 +29,7 @@ class IslandoraBookviewer {
 
   // an ajax callback has been added in the module
  
-  function showAjaxBookViewer($page) {
+  function showAjaxBookViewer($page = 'mainpage.php') {
     global $base_url;
     $path = drupal_get_path('module', 'islandora_bookviewer');
     $fullPath = $path . '/';

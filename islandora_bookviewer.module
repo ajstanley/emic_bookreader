@@ -53,9 +53,20 @@ function islandora_bookviewer_menu() {
     'type' => MENU_CALLBACK,
     'access arguments' => array('use CWRC'),
   );
+
+  $items['bookreader/standalone'] = array(
+    'page callback' => 'bookreader',
+    'file' => 'standalone.inc',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('use bookreader'),
+  );
   return $items;
 }
 
+
+function islandora_bookreader_perms(){
+  return array('use bookreader');
+}
 /*
   function islandora_bookviewer_get_book_page($page) {
   global $base_url;
@@ -77,14 +88,12 @@ function islandora_bookviewer_get_mods($page) {
   return;
 }
 
-
 /**
  * Provides page information for Bookviewer
  * To be invoked with ajax
  * @global url $base_url
  * @param string $pid
  */
-
 function islandora_bookviewer_setup($pid) {
   module_load_include('inc', 'islandora_book', 'book_pack_utils');
   module_load_include('inc', 'fedora_repository', 'api/fedora_item');
@@ -95,7 +104,7 @@ function islandora_bookviewer_setup($pid) {
   $islandora_prefix = $base_url . '/fedora/repository/';
   $fedora_prefix = variable_get('fedora_base_url', 'http:8080/fedora');
   $book_pids = get_sorted_pages($pid);
-  $filename = $djatoka_prefix . "$fedora_prefix/objects/" . $book_pids[count($book_pids)] ."/datastreams/JP2/content&svc_id=info:lanl-repo/svc/getMetadata";
+  $filename = $djatoka_prefix . "$fedora_prefix/objects/" . $book_pids[count($book_pids)] . "/datastreams/JP2/content&svc_id=info:lanl-repo/svc/getMetadata";
   $pageData = json_decode(file_get_contents($filename));
   $configs = array();
   $configs['DJATOKA_PREFIX'] = $djatoka_prefix;

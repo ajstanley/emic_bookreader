@@ -1,24 +1,42 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<?php
+//experimental - not to be used
+function bookreader($pid) {
 
-<html>
-  <head>
-    <title>Islandora Reader</title>
+    $moduleRoot=drupal_get_path('module','islandora_bookviewer');
 
-    <link rel="stylesheet" type="text/css" href="css/BookReader.css"/>
-    <!-- Custom CSS overrides -->
-    <link rel="stylesheet" type="text/css" href="css/BookReaderDemo.css"/>
+  drupal_add_css($moduleRoot . '/css/BookReaderDemo.css');
+  drupal_add_css($moduleRoot . '/css/BookReader.css');
+  //drupal_add_js($moduleRoot . '/js/jquery-ui-1.8.5.custom.min.js');
+  drupal_add_js($moduleRoot . '/js/dragscrollable.js');
+  drupal_add_js($moduleRoot . '/js/jquery.colorbox-min.js');
+  drupal_add_js($moduleRoot . '/js/jquery.ui.ipad.js');
+  drupal_add_js($moduleRoot . '/js/jquery.bt.min.js');
+  drupal_add_js($moduleRoot . '/js/BookReader.js');
 
-    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-1.8.5.custom.min.js"></script>
-    <script type="text/javascript" src="js/dragscrollable.js"></script>
-    <script type="text/javascript" src="js/jquery.colorbox-min.js"></script>
-    <script type="text/javascript" src="js/jquery.ui.ipad.js"></script>
-    <script type="text/javascript" src="js/jquery.bt.min.js"></script>
-    <script type="text/javascript" src="js/BookReader.js"></script>
-    <script type="text/javascript" src="js/islandora_loader.js"></script>
+  // drupal_add_js($moduleRoot . '/js/standalone_loader.js');
 
-  </head>
-  <body style="background-color: #939598;">
+
+  module_load_include('inc', 'islandora_book', 'book_pack_utils');
+  module_load_include('inc', 'fedora_repository', 'api/fedora_item');
+  global $base_url;
+  $item = new Fedora_Item($pid);
+  $label = $item->objectProfile->objLabel;
+  $djatoka_prefix = "http://localhost:8080/adore-djatoka/resolver?url_ver=Z39.88-2004&rft_id=";
+  $islandora_prefix = $base_url . '/fedora/repository/';
+  $fedora_prefix = variable_get('fedora_base_url', 'http:8080/fedora');
+  $book_pids = get_sorted_pages($pid);
+  $filename = $djatoka_prefix . "$fedora_prefix/objects/" . $book_pids[count($book_pids)] . "/datastreams/JP2/content&svc_id=info:lanl-repo/svc/getMetadata";
+  $pageData = json_decode(file_get_contents($filename));
+  $pageCount =  count($book_pids);
+
+  $configs['book_pids'] = $book_pids;
+  $configs['page_width'] = $pageData->width;
+  $configs['page_height'] = $pageData->height;
+  $configs['page_count'] = count($book_pids);
+  $configs['label'] = $label;
+  drupal_add_js($book_pids, 'setting');
+
+  $content = <<< HTML
 
     <div id="BookReader" style="left:10px; right:10px; top:10px; bottom:2em;">Loading Bookreader, please wait...</div>
 
@@ -29,16 +47,16 @@
       // Copyright(c)2008-2009 Internet Archive. Software license AGPL version 3.
 
       // Create the BookReader object
+      PID = '$pid';
       br = new BookReader();
-      br.structMap = new Array();
-      br.djatoka_prefix = islandora_params.DJATOKA_PREFIX;
-      br.islandora_prefix = islandora_params.ISLANDORA_PREFIX;
-      br.fedora_prefix = islandora_params.FEDORA_PREFIX;
-      br.width = islandora_params.page_width;
-      br.height = islandora_params.page_height;
-      br.structMap = islandora_params.book_pids;
-      br.compression = islandora_params.COMPRESSION;
-
+     
+      br.djatoka_prefix = '$djatoka_prefix';
+      br.islandora_prefix = '$islandora_prefix';
+      br.fedora_prefix = '$fedora_prefix';
+      br.width = '$pageData->width';
+      br.height = '$pageData->height';
+      br.structMap = $book_pids;
+      br.compression = 4;
       br.getPageWidth = function(index) {
         return br.width;
       }
@@ -54,7 +72,7 @@
         // reduce and rotate are ignored in this simple implementation, but we
         // could e.g. look at reduce and load images from a different directory
         // or pass the information to an image server
-        var leafStr = br.structMap[index+1];//get the pid of the object from the struct map islandora specific
+        var leafStr = Drupal.settings[index+1];//get the pid of the object from the struct map islandora specific
        // var url = br.djatoka_prefix + br.islandora_prefix + leafStr + '/JP2/&svc_id=info:lanl-repo/svc/getRegion&svc_val_fmt=info:ofi/fmt:kev:mtx:jpeg2000&svc.format=image/png&svc.level=' + br.compression + '&svc.rotate=0';
        var url = br.djatoka_prefix + br.fedora_prefix + '/objects/' + leafStr + '/datastreams/JP2/content&svc_id=info:lanl-repo/svc/getRegion&svc_val_fmt=info:ofi/fmt:kev:mtx:jpeg2000&svc.format=image/png&svc.level=' + br.compression + '&svc.rotate=0';
 
@@ -73,8 +91,8 @@
 
       // Return which side, left or right, that a given page should be displayed on
       br.getPageSide = function(index) {
-        $vals = ["R", "L"];
-        return $vals[index & 0x1];
+        vals = ["R", "L"];
+        return vals[index & 0x1];
       }
 
       // This function returns the left and right indices for the user-visible
@@ -117,10 +135,10 @@
       }
 
       // Total number of leafs
-      br.numLeafs = islandora_params.page_count;
+      br.numLeafs = $pageCount;
 
       // Book title and the URL used for the book title link
-      br.bookTitle = islandora_params.label;
+      br.bookTitle = '$label';
       if (br.bookTitle.length > 100){
         br.bookTitle =  br.bookTitle.substring(0,97)+'...';
       }
@@ -128,7 +146,7 @@
       br.bookUrl = br.islandora_prefix + PID;
       br.bookPid = PID;
       // Override the path used to find UI images
-      br.imagesBaseURL = '../images/';
+      br.imagesBaseURL = '../BookReader/images/';
 
       br.getEmbedCode = function(frameWidth, frameHeight, viewParams) {
         return "Embed code not supported in bookreader demo.";
@@ -145,6 +163,7 @@
     </script>
 
 
-  </body>
-</html>
+HTML;
+  return $content;
+}
 
