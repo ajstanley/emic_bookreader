@@ -93,7 +93,7 @@ function islandora_bookviewer_get_mods($page) {
 function islandora_bookviewer_form_islandora_book_admin_settings_alter(&$form, &$form_state) {
 
   $djatoka_path = isset($form_state['values']['islandora_djatoka_path']) ? $form_state['values']['islandora_djatoka_path'] : variable_get('islandora_djatoka_path', 'http://localhost:8080/adore-djatoka');
-  $djatoka_avail = djatoka_available($djatoka_path);
+  $djatoka_avail = is_url_valid($djatoka_path);
   $confirmation_message = ($djatoka_avail ? '<img src="' . url('misc/watchdog-ok.png') . '"/>'
           . t('Djatoka url is valid.') : '<img src="'
           . url('misc/watchdog-error.png') . '"/> '
@@ -151,18 +151,3 @@ function islandora_bookviewer_setup($pid) {
 }
 
 
-function djatoka_available($djatoka_url) {
-
-  $handle = curl_init($djatoka_url);
-  curl_setopt($handle, CURLOPT_RETURNTRANSFER, TRUE);
-  $response = curl_exec($handle);
-  $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
- 
-  $retval = TRUE;
-  if ($httpCode % 100 == 4) {
-    $retval = FALSE;
-  }
-  curl_close($handle);
- 
-  return $retval;
-}
