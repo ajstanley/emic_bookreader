@@ -3,14 +3,17 @@
 // $Id$
 
 /**
- * @file fedora_repository.install
+ * @file islandora_bookviewer.install
+ *
+ * This is the islandora installation of the Ineternet Archive Bookviewer
+ *
  */
 
 /**
  * Implementation of hook_enable().
  */
 function islandora_bookviewer_enable() {
-  drupal_set_message("installing");
+  
   create_js_callback();
 }
 
@@ -42,9 +45,14 @@ function islandora_bookviewer_requirements($phase) {
 function create_js_callback() {
   global $base_url;
   $URL = $base_url . '/bookreader/setup/';
-  $javascript = <<<FILE
+  $created = strftime('%c');
 
-// this file is generated dynamically and non-destructively during the Drupal installation process.
+  $javascript = <<<FILE
+// Created $created
+// This file is generated dynamically during the Drupal installation process.
+// Any changes made to this file will be lost on reinstallation.
+// Clone and rename this file if changes are to survive module reactivation.
+
     $.urlParam = function(name){
   var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
   if (!results)
@@ -72,7 +80,6 @@ function create_js_callback() {
 FILE;
   $path = drupal_get_path('module', 'islandora_bookviewer');
   $filename = "$path/js/islandora_loader.js";
-  if (!is_file($filename)) {
-    file_put_contents($filename, $javascript);
-  }
+  file_put_contents($filename, $javascript);
+
 }

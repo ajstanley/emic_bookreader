@@ -51,14 +51,17 @@ function islandora_bookviewer_menu() {
   $items['bookreader/setup'] = array(
     'page callback' => 'islandora_bookviewer_setup',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('use CWRC'),
+    'access arguments' => array('view fedora collection'),
   );
 
+
+  //experimental - do not expose
   $items['bookreader/standalone'] = array(
     'page callback' => 'bookreader',
     'file' => 'standalone.inc',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('use bookreader'),
+   // 'access arguments' => array('view fedora collection'),
+    'access_callback'=>TRUE
   );
   return $items;
 }

@@ -1,10 +1,10 @@
+// Wed Mar  7 08:51:53 2012
+// This file is generated dynamically during the Drupal installation process.
+// Any changes made to this file will be lost on reinstallation.
+// Clone and rename this file if changes are to survive reinstallation.
 
-/**
- * On ingest Drupal will create a copy of this file, with the URL localized to the Drupal installation
- */
-
-$.urlParam = function(name){
-  var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    $.urlParam = function(name){
+  var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
   if (!results)
   {
     return 0;
@@ -25,8 +25,4 @@ $.urlParam = function(name){
     },
     dataType: 'json'
   });
-
-
-
-
 

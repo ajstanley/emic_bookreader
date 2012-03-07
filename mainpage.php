@@ -34,8 +34,8 @@
       br.djatoka_prefix = islandora_params.DJATOKA_PREFIX;
       br.islandora_prefix = islandora_params.ISLANDORA_PREFIX;
       br.fedora_prefix = islandora_params.FEDORA_PREFIX;
-      br.width = islandora_params.page_width * 1;
-      br.height = islandora_params.page_height * 1;
+      br.width = parseInt(islandora_params.page_width);
+      br.height = parseInt(islandora_params.page_height);
       br.structMap = islandora_params.book_pids;
       br.compression = islandora_params.COMPRESSION;
 
